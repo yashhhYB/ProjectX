@@ -1,0 +1,7 @@
+{
+  "model": "sentence-transformers/all-MiniLM-L6-v2",
+  "num_candidates": 100000,
+  "embedding_dim": 384,
+  "pre_normalized": true,
+  "compute_time_seconds": 6410.59019446373
+}

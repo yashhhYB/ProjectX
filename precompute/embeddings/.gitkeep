@@ -1,0 +1,2 @@
+# This directory stores pre-computed embeddings (.npy files).
+# Run precompute/precompute_embeddings.py to generate them.

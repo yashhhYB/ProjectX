@@ -1,0 +1,41 @@
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.egg-info/
+dist/
+build/
+.eggs/
+
+# Embeddings (too large for git — pre-compute locally)
+precompute/embeddings/*.npy
+precompute/model_cache/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Virtual environment
+venv/
+.venv/
+env/
+
+# Test outputs
+test_submission.csv
+
+# Temp files
+*.tmp
+jd_out.txt
+signals_out.txt
+spec_out.txt
+jd_output.txt
+
+# Mac artifacts
+__MACOSX/
+[PUB] India_runs_data_and_ai_challenge/India_runs_data_and_ai_challenge/candidates.jsonl

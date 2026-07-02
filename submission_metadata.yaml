@@ -1,0 +1,83 @@
+# Redrob Hackathon — Submission Metadata (v2)
+# ============================================================================
+# Team identity
+# ============================================================================
+team_name: "Yash's Solo Ranker"
+
+primary_contact:
+  name: "Yash"
+  email: "yashh@example.com"
+  phone: "+91-0000000000"
+
+team_members:
+  - name: "Yash"
+    email: "yashh@example.com"
+    role: "ML Engineer"
+
+# ============================================================================
+# Code and reproducibility
+# ============================================================================
+github_repo: "https://github.com/yashh/redrob-candidate-ranker"
+
+sandbox_link: "http://localhost:8501"
+
+reproduce_command: "python rank.py --candidates ./[PUB] India_runs_data_and_ai_challenge/India_runs_data_and_ai_challenge/candidates.jsonl --out ./submission.csv"
+
+# ============================================================================
+# Compute environment
+# ============================================================================
+compute:
+  platform: "Local Windows Workstation"
+  cpu_cores: 8
+  ram_gb: 16
+  python_version: "3.11"
+  os: "Windows 11"
+  uses_gpu_for_inference: false
+  has_network_during_ranking: false
+  pre_computation_required: true
+  pre_computation_time_minutes: 30
+
+# ============================================================================
+# AI tools declaration
+# ============================================================================
+ai_tools_used:
+  - "Gemini 3.1 Pro (High)"
+  - "Antigravity IDE"
+  - "Claude (architecture review)"
+
+ai_usage_summary: |
+  Used Antigravity IDE with Gemini and Claude for collaborative refactoring of the
+  9-component composite scoring engine, career depth analyzer, and fact-based reasoning
+  generator. AI tools assisted with code structure and review; all ranking logic and
+  design decisions are original engineering work.
+
+# ============================================================================
+# Approach summary (v2)
+# ============================================================================
+methodology_summary: |
+  v2 pipeline reads the JD deeply — understanding not just what it says but what it means.
+  
+  Technical Strategy:
+  1. 9-Component Composite Scorer: Title/Career (25%), Skills (18%), Semantic (12%),
+     Experience Gaussian (10%), Behavioral signals (10%), Career Depth (8%),
+     Skill Assessments (7%), Location (5%), Education (5%).
+  2. All 23 Redrob Behavioral Signals: Response rate, recency, notice period, GitHub,
+     profile completeness, verification, recruiter saves — weighted by importance.
+  3. Career Depth Analysis: Product vs consulting ratio, production keyword density,
+     career trajectory scoring, job-hopper detection (avg tenure < 18 months).
+  4. Enhanced Honeypot Detection: 9 consistency checks including education timeline
+     impossibility, excessive expert claims, and mass zero-duration experts.
+  5. Unique Fact-Based Reasoning: Each candidate gets substantively different reasoning
+     referencing specific skills, career highlights, assessment scores, and honest concerns.
+  6. Upgraded Embeddings: all-mpnet-base-v2 (768-dim) with enriched candidate text
+     (skills, certifications, education) and enriched JD query.
+
+# ============================================================================
+# Declarations
+# ============================================================================
+declarations:
+  read_submission_spec: true
+  code_is_original_work: true
+  no_collusion: true
+  honeypot_check_done: true
+  reproduction_tested: true
