@@ -22,7 +22,6 @@ __pycache__/
 *.pdf
 *.pptx
 *.docx
-*.txt
 
 # Data and models
 precompute/embeddings/*.npy
