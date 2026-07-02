@@ -1,136 +1,99 @@
-# 🎯 Redrob AI — Intelligent Candidate Discovery & Ranking (v2)
+# Redrob Candidate Ranking System
 
-> AI-powered candidate ranking system that goes beyond keyword matching to understand who actually fits the role.
+> An intelligent, multi-signal candidate evaluation and ranking engine designed for AI/ML roles.
 
-## Architecture
+This repository contains the core logic, scoring engine, and inference pipeline for Redrob's candidate ranking system. It goes beyond simple keyword matching by evaluating candidates holistically across 9 critical dimensions, incorporating deep behavioral analytics and robust honeypot detection.
+
+---
+
+## 🎯 Architecture Overview
+
+The pipeline processes candidates through five distinct stages:
+
+1. **Rule-Based Pre-Filter** (`prefilter.py`): Softly filters clearly non-technical roles while maintaining high recall. Includes staleness detection to appropriately down-weight inactive profiles.
+2. **Semantic Similarity** (`embeddings.py`): Computes cosine similarity between enriched candidate text (skills, certifications, education) and the job description using `all-mpnet-base-v2` (768-dim) sentence embeddings.
+3. **Multi-Signal Composite Scorer** (`scorer.py`): The core evaluation engine that balances 9 components:
+   - *Title & Career progression*
+   - *Trust-weighted Skill Matching*
+   - *Semantic Fit*
+   - *Experience Gaussian Sweet Spot*
+   - *Behavioral Signals (23 unique signals)*
+   - *Career Depth Analysis*
+   - *Verified Assessment Scores*
+   - *Location Preferences*
+   - *Educational Background*
+4. **Honeypot Detection** (`honeypot.py`): Advanced fraud detection using 9 chronological and biographical consistency checks to catch automated or embellished profiles.
+5. **Reasoning Generator** (`llm_reasoning.py`): Generates unique, specific, and fact-based justification strings for each top candidate, explaining exactly *why* they were ranked highly while acknowledging honest concerns.
+
+---
+
+## 📁 Repository Structure
 
 ```
-┌──────────────────────────────────────────────────────────┐
-│                    rank.py (CLI Entry)                     │
-├──────────────────────────────────────────────────────────┤
-│  Stage 1: Rule-Based Pre-Filter                          │
-│  → Eliminates non-technical roles (soft filtering)       │
-│  → Staleness detection for behavioral down-weighting     │
-├──────────────────────────────────────────────────────────┤
-│  Stage 2: Semantic Scoring                               │
-│  → Pre-computed all-mpnet-base-v2 embeddings (768-dim)   │
-│  → Enriched candidate text (skills, certs, education)    │
-│  → Cosine similarity with enriched JD embedding          │
-├──────────────────────────────────────────────────────────┤
-│  Stage 3: Multi-Signal Composite Scorer (9 components)   │
-│  → Title/Career (25%) + Skills (18%) + Semantic (12%)   │
-│  → Experience (10%) + Behavioral (10%) + Career Depth(8%)│
-│  → Assessment (7%) + Location (5%) + Education (5%)      │
-│  Uses ALL 23 Redrob behavioral signals                   │
-├──────────────────────────────────────────────────────────┤
-│  Stage 4: Enhanced Honeypot Detection                    │
-│  → 9 consistency checks for impossible profiles          │
-│  → Education timeline + expert skill inflation           │
-├──────────────────────────────────────────────────────────┤
-│  Stage 5: Unique Fact-Based Reasoning Generation         │
-│  → Per-candidate explanations referencing specific facts │
-│  → Rank-aware tone (enthusiastic → measured → honest)    │
-│  → Optional Gemini free-tier enrichment for top 20       │
-└──────────────────────────────────────────────────────────┘
+├── rank.py                         # Main CLI entry point for the ranking pipeline
+├── app.py                          # Streamlit UI dashboard for interacting with results
+├── requirements.txt                # Python dependencies
+├── Dockerfile                      # Containerization configuration
+├── submission_metadata.yaml        # Project metadata
+├── precompute/
+│   └── precompute_embeddings.py    # Offline embedding generation script
+└── src/
+    ├── __init__.py
+    ├── config.py                   # Global constants, thresholds, and weights
+    ├── loader.py                   # Data ingestion and text enrichment
+    ├── prefilter.py                # Stage 1: Pre-filtering
+    ├── embeddings.py               # Stage 2: Semantic scoring
+    ├── scorer.py                   # Stage 3: Core composite scoring engine
+    ├── career_analyzer.py          # Stage 3b: Career depth and trajectory analysis
+    ├── honeypot.py                 # Stage 4: Profile authenticity checks
+    ├── ranker.py                   # Pipeline orchestration
+    └── llm_reasoning.py            # Stage 5: Reasoning string generation
 ```
 
-## Quick Start
+---
 
-### 1. Install Dependencies
+## 🚀 Quick Start
+
+### 1. Environment Setup
+
+Install the required dependencies:
 ```bash
 pip install -r requirements.txt
 ```
 
-### 2. Pre-compute Embeddings (One-time, ~10-30 min)
+### 2. Pre-compute Embeddings (One-Time Setup)
+
+The system relies on high-quality embeddings. Run this step once to download the `all-mpnet-base-v2` model and precompute the vector representations for all candidates.
+
 ```bash
-python precompute/precompute_embeddings.py --candidates ./candidates.jsonl
+python precompute/precompute_embeddings.py --candidates /path/to/candidates.jsonl
 ```
 
-### 3. Run Ranking (< 5 minutes, CPU, no network)
+### 3. Run the Ranking Pipeline
+
+Execute the full ranking pipeline. This runs entirely offline using the CPU and completes in under 5 minutes for 100K candidates.
+
 ```bash
-python rank.py --candidates ./candidates.jsonl --out ./submission.csv
+python rank.py --candidates /path/to/candidates.jsonl --out submission.csv
 ```
 
-### 4. Validate Submission
-```bash
-python validate_submission.py submission.csv
-```
+### 4. Launch the Dashboard
 
-### 5. Launch Demo Dashboard
+Visualize the results and explore the scoring logic dynamically via the Streamlit interface:
+
 ```bash
 streamlit run app.py
 ```
 
-## Scoring Methodology (v2)
+---
 
-| Component | Weight | What It Measures |
-|-----------|--------|--------------------|
-| Title & Career | 25% | Role relevance, seniority detection, career progression |
-| Skill Match | 18% | Trust-weighted skill matching (proficiency × duration × endorsements) with core/nice-to-have differentiation |
-| Semantic | 12% | Embedding cosine similarity (all-mpnet-base-v2) against enriched JD |
-| Experience | 10% | Gaussian sweet spot centered at 7yr (σ=1.5) |
-| Behavioral | 10% | ALL 23 Redrob signals: response rate, recency, notice period, GitHub, verification, market signals |
-| Career Depth | 8% | Product vs consulting ratio, production keywords, career trajectory, certifications, industry alignment |
-| Assessment | 7% | Redrob platform skill_assessment_scores for verified competency |
-| Location | 5% | India/preferred city preference (Pune/Noida priority) |
-| Education | 5% | Institution tier + field relevance + degree bonus |
+## 🧠 Key Design Principles
 
-### Key Design Decisions
+- **Deterministic & Offline:** The scoring engine requires zero network calls and no expensive LLM API usage during the ranking loop.
+- **Anti-Gaming:** Skills are trust-weighted (Proficiency × Duration × Endorsements). Merely listing a keyword provides minimal score impact compared to verified usage.
+- **Context-Aware:** Deep analysis of career history distinguishes between candidates who merely consult on ML models versus those who build, scale, and deploy them to production.
+- **Fraud Prevention:** Explicit penalties are applied for impossible timelines, excessive expert claims relative to years of experience, and bot-like application behavior.
 
-1. **Title is the decisive signal** — A "Marketing Manager" with AI keywords is NOT a fit (the JD explicitly warns about this trap)
-2. **Trust-weighted skills** — Skills are scored as `proficiency × log(duration) × log(endorsements)`, with 1.3x multiplier for core required skills
-3. **All 23 behavioral signals** — Response rate, response time, recency, notice period, GitHub activity, profile completeness, verification, recruiter saves, offer acceptance, interview completion, and open-to-work status
-4. **Career depth analysis** — Job-hopper detection (avg tenure < 18mo), product vs consulting ratio, production keyword density, career trajectory scoring
-5. **Skill assessment integration** — Redrob's platform assessment scores are actual test results, more reliable than self-reported skills
-6. **Enhanced honeypot detection** — 9 consistency checks including education timeline impossibility, excessive expert claims, and mass zero-duration experts
-7. **Unique fact-based reasoning** — Each of the 100 candidates gets a substantively different reasoning string referencing their specific profile facts, strengths, and honest concerns
+---
 
-## Project Structure
-
-```
-├── rank.py                         # Main entry point
-├── app.py                          # Streamlit demo dashboard
-├── requirements.txt                # Dependencies
-├── submission_metadata.yaml        # Hackathon metadata
-├── src/
-│   ├── config.py                   # All constants, weights, thresholds
-│   ├── loader.py                   # Data loading + enriched text builder
-│   ├── jd_parser.py                # JD understanding
-│   ├── prefilter.py                # Soft rule-based elimination
-│   ├── embeddings.py               # Semantic embedding loading
-│   ├── scorer.py                   # 9-component composite scorer
-│   ├── career_analyzer.py          # Career depth analysis module
-│   ├── honeypot.py                 # Enhanced honeypot detection (9 checks)
-│   ├── llm_reasoning.py            # Rich fact-based reasoning engine
-│   └── ranker.py                   # Pipeline orchestration
-├── precompute/
-│   ├── precompute_embeddings.py    # One-time embedding generation
-│   └── embeddings/                 # Saved .npy files
-└── submission.csv                  # Final output
-```
-
-## Compute Constraints
-
-- ✅ CPU-only (no GPU required)
-- ✅ 16GB RAM (tested with 100K candidates)
-- ✅ No network access during ranking
-- ✅ Ranking completes in < 5 minutes
-- ✅ Pre-computation is documented and separate
-
-## Tech Stack
-
-- **Python 3.11+**
-- **sentence-transformers** (all-mpnet-base-v2) — semantic embeddings
-- **FAISS** — vector similarity search
-- **NumPy/Pandas** — data processing
-- **Streamlit** — interactive demo dashboard
-- **Plotly** — visualizations
-
-## AI Tools Declaration
-
-AI tools were used as development aids (not for ranking logic):
-- **Claude** — architecture discussion, code review
-- **Gemini** — optional reasoning enrichment (free tier, offline fallback)
-- **Antigravity IDE** — development workflow
-
-No candidate data was fed to any LLM. The ranking is fully deterministic and offline.
+*Note: Data files, generated output files (CSV/XLSX), and presentations have been explicitly ignored from this repository to maintain a clean codebase environment.*

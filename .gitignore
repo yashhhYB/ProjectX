@@ -1,41 +1,41 @@
-# Python
+# Environments
+.env
+.venv
+env/
+venv/
+ENV/
+env.bak/
+venv.bak/
+
+# Byte-compiled / optimized / DLL files
 __pycache__/
-*.pyc
-*.pyo
-*.egg-info/
-dist/
-build/
-.eggs/
+*.py[cod]
+*$py.class
 
-# Embeddings (too large for git — pre-compute locally)
-precompute/embeddings/*.npy
-precompute/model_cache/
-
-# IDE
+# IDEs and VS Code
 .vscode/
 .idea/
-*.swp
-*.swo
 
-# OS
-.DS_Store
-Thumbs.db
+# Output and temp files
+*.csv
+*.xlsx
+*.pdf
+*.pptx
+*.docx
+*.txt
 
-# Virtual environment
-venv/
-.venv/
-env/
+# Data and models
+precompute/embeddings/*.npy
+precompute/embeddings/*.json
+precompute/model_cache/
+[PUB]*
 
-# Test outputs
-test_submission.csv
+# Temp scratch scripts
+generate_*.py
+convert_*.py
+remove_*.py
+update_*.py
+test_*.py
 
-# Temp files
-*.tmp
-jd_out.txt
-signals_out.txt
-spec_out.txt
-jd_output.txt
-
-# Mac artifacts
-__MACOSX/
-[PUB] India_runs_data_and_ai_challenge/India_runs_data_and_ai_challenge/candidates.jsonl
+# Streamlit
+.streamlit/
